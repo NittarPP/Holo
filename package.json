@@ -1,15 +1,15 @@
 {
-  "name": "discord",
+  "dependencies": {
+    "discord.js": "^14.18.0",
+    "dotenv": "^16.4.7"
+  },
+  "name": "filesave",
   "version": "1.0.0",
-  "description": "Keep",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "node .": "node index.js"
   },
   "author": "",
   "license": "ISC",
-  "dependencies": {
-    "eris": "^0.17.2",
-    "dotenv": "^16.3.1"
-  }
+  "description": ""
 }
