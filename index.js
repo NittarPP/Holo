@@ -8,6 +8,8 @@ const botTokens = [
   process.env.TOKEN3
 ];
 
+const statuses = ["dnd", "idle", "dnd"];
+
 const bots = botTokens.map((token, index) => {
   const bot = new Eris(token);
 
@@ -17,23 +19,9 @@ const bots = botTokens.map((token, index) => {
 
   bot.on("ready", () => {
     console.log(`Bot ${index + 1} is ready as ${bot.user.username}`);
-
-    if (index === 1) {
-      bot.editStatus("dnd");
-    } else if (index === 2) {
-      bot.editStatus("idle");
-    } else if (index === 3) {
-      bot.editStatus("dnd");
-    } else {
-      bot.editStatus("dnd");
-    }
+    bot.editStatus(statuses[index] || "dnd");
   });
 
   bot.connect();
   return bot;
 });
-
-
-// online
-// dnd
-// idle
