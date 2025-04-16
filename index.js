@@ -18,7 +18,6 @@ const bots = botTokens.map((token, index) => {
   bot.on("ready", () => {
     console.log(`Bot ${index + 1} is ready as ${bot.user.username}`);
 
-    // Set status when the bot is ready
     if (index === 2) {
       bot.editStatus("idle");
     } else {
