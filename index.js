@@ -22,7 +22,7 @@ const bots = botTokens.map((token, index) => {
       bot.editStatus("dnd");
     } else if (index === 2) {
       bot.editStatus("idle");
-    else if (index === 3) {
+    } else if (index === 3) {
       bot.editStatus("dnd");
     } else {
       bot.editStatus("online");
