@@ -4,11 +4,12 @@
   "description": "Keep",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "eris": "^0.17.2"
+    "eris": "^0.17.2",
+    "dotenv": "^16.3.1"
   }
 }
