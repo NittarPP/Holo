@@ -1,12 +1,12 @@
 require('dotenv').config();
+console.log("Token:", process.env.TOKEN);
 const Eris = require("eris");
-const keep_alive = require('./keep_alive.js')
 
-// Replace TOKEN with your bot account's token
+// Make sure you're referencing process.env.TOKEN (all uppercase)
 const bot = new Eris(process.env.TOKEN);
 
 bot.on("error", (err) => {
-  console.error(err); // or your preferred logger
+  console.error(err);
 });
 
-bot.connect(); // Get the bot to connect to Discord
+bot.connect();
