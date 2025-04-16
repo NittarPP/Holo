@@ -1,6 +1,6 @@
 require('dotenv').config();
 const Eris = require("eris");
-const keep_alive = require('./keep_alive.js');
+const keep_alive = require('./keep_alive.js')
 
 const botTokens = [
   process.env.TOKEN1,
@@ -19,7 +19,7 @@ const bots = botTokens.map((token, index) => {
 
   // Set specific status based on bot index
   if (index === 1) {
-    bot.editStatus("idle");
+    bot.editStatus("dnd");
   } else if (index === 2) {
     bot.editStatus("dnd");
   } else {
@@ -28,3 +28,7 @@ const bots = botTokens.map((token, index) => {
 
   return bot;
 });
+
+// online
+// dnd
+// idle
