@@ -1,16 +1,30 @@
+require('dotenv').config();
 const Eris = require("eris");
-const keep_alive = require('./keep_alive.js')
+const keep_alive = require('./keep_alive.js');
 
-const bot1 = new Eris(process.env.TOKEN1);
-const bot2 = new Eris(process.env.TOKEN2);
+const botTokens = [
+  process.env.TOKEN1,
+  process.env.TOKEN2,
+  process.env.TOKEN3
+];
 
-bot1.on("error", (err) => {
-  console.error(err);
+const bots = botTokens.map((token, index) => {
+  const bot = new Eris(token);
+
+  bot.on("error", (err) => {
+    console.error(`Error with bot${index + 1}:`, err);
+  });
+
+  bot.connect();
+
+  // Set specific status based on bot index
+  if (index === 1) {
+    bot.editStatus("idle");
+  } else if (index === 2) {
+    bot.editStatus("dnd");
+  } else {
+    bot.editStatus("dnd");
+  }
+
+  return bot;
 });
-
-bot2.on("error", (err) => {
-  console.error(err);
-});
-
-bot1.connect();
-bot2.connect();
