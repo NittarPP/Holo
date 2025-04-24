@@ -47,6 +47,12 @@ const delay = ms => new Promise(res => setTimeout(res, ms));
       console.warn(`⚠️ Bot ${i + 1} disconnected with code ${code}:`, err);
     });
 
+    bot.on("messageCreate", (msg) => {
+    if(msg.content === "Hello") {
+      bot.createMessage(msg.channel.id, "Hi");
+    }
+  });
+
     bot.connect();
     bots.push(bot);
 
