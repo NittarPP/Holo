@@ -52,48 +52,46 @@ const getResponse = async (message) => {
 (async () => {
   loadDatabase(); // โหลดฐานข้อมูลเมื่อเริ่มทำงาน
 
-  for (let i = 0; i < botTokens.length; i++) {
-    const bot = new Eris(botTokens[i]);
+  // Only connect Bot 1
+  const botIndex = 0;  // Bot index 1 is at position 0 in the array
+  const bot = new Eris(botTokens[botIndex]);
 
-    bot.on("ready", () => {
-      console.log(`✅ Bot ${i + 1} is ready as ${bot.user.username}`);
-      bot.editStatus(status[i], {
-        name: activityTexts[i],
-        type: activityTypes[i]
-      });
-
-      bot.on("messageCreate", (msg) => {
-        if (msg.author.id !== bot.user.id) {  // ตรวจสอบว่าไม่ตอบข้อความของตัวเอง
-          getResponse(msg.content).then((response) => {
-            bot.createMessage(msg.channel.id, response);
-
-            // ถ้าบอทไม่รู้คำตอบ, จะขอคำตอบจากผู้ใช้
-            if (response === "I don't know the answer to that. Can you tell me the answer?") {
-              bot.on("messageCreate", (responseMsg) => {
-                if (responseMsg.author.id === msg.author.id) {
-                  // เก็บคำตอบของผู้ใช้
-                  qaDatabase[msg.content.toLowerCase()] = responseMsg.content;
-                  saveDatabase();  // บันทึกฐานข้อมูล
-                  bot.createMessage(msg.channel.id, "Thank you! I'll remember that answer.");
-                }
-              });
-            }
-          });
-        }
-      });
+  bot.on("ready", () => {
+    console.log(`✅ Bot 1 is ready as ${bot.user.username}`);
+    bot.editStatus(status[botIndex], {
+      name: activityTexts[botIndex],
+      type: activityTypes[botIndex]
     });
 
-    bot.on("error", (err) => {
-      console.error(`❗ Error with bot ${i + 1}:`, err);
+    bot.on("messageCreate", (msg) => {
+      if (msg.author.id !== bot.user.id) {  // ตรวจสอบว่าไม่ตอบข้อความของตัวเอง
+        getResponse(msg.content).then((response) => {
+          bot.createMessage(msg.channel.id, response);
+
+          // ถ้าบอทไม่รู้คำตอบ, จะขอคำตอบจากผู้ใช้
+          if (response === "I don't know the answer to that. Can you tell me the answer?") {
+            bot.on("messageCreate", (responseMsg) => {
+              if (responseMsg.author.id === msg.author.id) {
+                // เก็บคำตอบของผู้ใช้
+                qaDatabase[msg.content.toLowerCase()] = responseMsg.content;
+                saveDatabase();  // บันทึกฐานข้อมูล
+                bot.createMessage(msg.channel.id, "Thank you! I'll remember that answer.");
+              }
+            });
+          }
+        });
+      }
     });
+  });
 
-    bot.on("disconnect", (err, code) => {
-      console.warn(`⚠️ Bot ${i + 1} disconnected with code ${code}:`, err);
-    });
+  bot.on("error", (err) => {
+    console.error(`❗ Error with Bot 1:`, err);
+  });
 
-    bot.connect();
-    bots.push(bot);
+  bot.on("disconnect", (err, code) => {
+    console.warn(`⚠️ Bot 1 disconnected with code ${code}:`, err);
+  });
 
-    if (i < botTokens.length - 1) await delay(3000); // รอ 3 วินาทีก่อนเชื่อมต่อบอทถัดไป
-  }
+  bot.connect(); // Connect the first bot
+
 })();
