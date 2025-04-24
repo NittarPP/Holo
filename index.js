@@ -37,6 +37,12 @@ const delay = ms => new Promise(res => setTimeout(res, ms));
         name: activityTexts[i],
         type: activityTypes[i]
       });
+
+      bot.on("messageCreate", (msg) => {
+      if(msg.content === "Hello") {
+        bot.createMessage(msg.channel.id, "Hi");
+      }
+    });
     });
 
     bot.on("error", (err) => {
@@ -46,12 +52,6 @@ const delay = ms => new Promise(res => setTimeout(res, ms));
     bot.on("disconnect", (err, code) => {
       console.warn(`⚠️ Bot ${i + 1} disconnected with code ${code}:`, err);
     });
-
-    bot.on("messageCreate", (msg) => {
-    if(msg.content === "Hello") {
-      bot.createMessage(msg.channel.id, "Hi");
-    }
-  });
 
     bot.connect();
     bots.push(bot);
