@@ -15,13 +15,10 @@ if (botTokens.some(token => !token)) {
 }
 
 const status = ["dnd", "dnd", "dnd"];
-const activityTypes = [2, 0, 2];
+const activityTypes = [2, 0, 2]; // 2: Listening, 0: Playing, 3: Streaming
 const activityTexts = ["Youtube Music", "Liminal land", "Coding"];
 
-const bots = [];
-const delay = ms => new Promise(res => setTimeout(res, ms));
-
-// กำหนดฐานข้อมูลคำถามและคำตอบ
+// Load and save question-answer database
 let qaDatabase = {};
 
 const loadDatabase = () => {
@@ -37,11 +34,10 @@ const saveDatabase = () => {
   fs.writeFileSync('qaDatabase.json', JSON.stringify(qaDatabase, null, 2));
 };
 
-// ฟังก์ชันตอบคำถาม
+// Responding to user messages
 const getResponse = async (message) => {
   const lowerCaseMessage = message.toLowerCase();
-
-  // ถ้าคำถามมีในฐานข้อมูล, ตอบคำถามนั้น
+  // If the question exists in the database, return the stored answer
   if (qaDatabase[lowerCaseMessage]) {
     return qaDatabase[lowerCaseMessage];
   } else {
@@ -49,49 +45,63 @@ const getResponse = async (message) => {
   }
 };
 
+// Connecting all bots
+const botInstances = [];
+const delay = ms => new Promise(res => setTimeout(res, ms));
+
+// Initialize bots
+const initBots = () => {
+  botTokens.forEach((token, index) => {
+    const bot = new Eris(token);
+
+    bot.on("ready", () => {
+      console.log(`✅ Bot ${index + 1} is ready as ${bot.user.username}`);
+      bot.editStatus(status[index], {
+        name: activityTexts[index],
+        type: activityTypes[index]
+      });
+
+      bot.on("messageCreate", (msg) => {
+        if (msg.author.id !== bot.user.id) {  // Avoid responding to its own messages
+          getResponse(msg.content).then((response) => {
+            bot.createMessage(msg.channel.id, response);
+
+            // If the bot doesn't know the answer, request the user’s answer
+            if (response === "I don't know the answer to that. Can you tell me the answer?") {
+              bot.on("messageCreate", (responseMsg) => {
+                if (responseMsg.author.id === msg.author.id) {
+                  // Save user-provided answer to the database
+                  qaDatabase[msg.content.toLowerCase()] = responseMsg.content;
+                  saveDatabase();  // Save the updated database
+                  bot.createMessage(msg.channel.id, "Thank you! I'll remember that answer.");
+                }
+              });
+            }
+          });
+        }
+      });
+    });
+
+    bot.on("error", (err) => {
+      console.error(`❗ Error with Bot ${index + 1}:`, err);
+    });
+
+    bot.on("disconnect", (err, code) => {
+      console.warn(`⚠️ Bot ${index + 1} disconnected with code ${code}:`, err);
+    });
+
+    botInstances.push(bot);
+  });
+};
+
+// Load the database and initialize bots
 (async () => {
-  loadDatabase(); // โหลดฐานข้อมูลเมื่อเริ่มทำงาน
+  loadDatabase(); // Load the question-answer database
+  initBots(); // Initialize all bots
 
-  // Only connect Bot 1
-  const botIndex = 0;  // Bot index 1 is at position 0 in the array
-  const bot = new Eris(botTokens[botIndex]);
-
-  bot.on("ready", () => {
-    console.log(`✅ Bot 1 is ready as ${bot.user.username}`);
-    bot.editStatus(status[botIndex], {
-      name: activityTexts[botIndex],
-      type: activityTypes[botIndex]
-    });
-
-    bot.on("messageCreate", (msg) => {
-      if (msg.author.id !== bot.user.id) {  // ตรวจสอบว่าไม่ตอบข้อความของตัวเอง
-        getResponse(msg.content).then((response) => {
-          bot.createMessage(msg.channel.id, response);
-
-          // ถ้าบอทไม่รู้คำตอบ, จะขอคำตอบจากผู้ใช้
-          if (response === "I don't know the answer to that. Can you tell me the answer?") {
-            bot.on("messageCreate", (responseMsg) => {
-              if (responseMsg.author.id === msg.author.id) {
-                // เก็บคำตอบของผู้ใช้
-                qaDatabase[msg.content.toLowerCase()] = responseMsg.content;
-                saveDatabase();  // บันทึกฐานข้อมูล
-                bot.createMessage(msg.channel.id, "Thank you! I'll remember that answer.");
-              }
-            });
-          }
-        });
-      }
-    });
-  });
-
-  bot.on("error", (err) => {
-    console.error(`❗ Error with Bot 1:`, err);
-  });
-
-  bot.on("disconnect", (err, code) => {
-    console.warn(`⚠️ Bot 1 disconnected with code ${code}:`, err);
-  });
-
-  bot.connect(); // Connect the first bot
-
+  // Connect each bot after a delay (to avoid rate limiting issues)
+  for (const bot of botInstances) {
+    await bot.connect();
+    await delay(1000); // Delay to avoid hitting rate limits for multiple bot connections
+  }
 })();
