@@ -13,10 +13,11 @@ if (botTokens.some(token => !token)) {
   console.error("❌ One or more bot tokens are missing. Please check your .env file.");
   process.exit(1);
 }
-
-const status = ["dnd", "dnd", "dnd"];
+// Status indicators (online, idle, dnd, invisible)
+const status = ["dnd", "invisible", "dnd"];
+// Activity types: 0=Playing 🎮, 1=Streaming 📹, 2=Listening 🎧, 3=Watching 📺, 4=Custom 🧙‍♂️, 5=Competing 🏆
 const activityTypes = [2, 0, 2];
-const activityTexts = ["Youtube Music", "Liminal land", "Coding"];
+const activityTexts = ["Youtube Music", "", "Coding"];
 
 const bots = [];
 const delay = ms => new Promise(res => setTimeout(res, ms));
