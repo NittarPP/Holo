@@ -8,7 +8,7 @@ const botTokens = [
   process.env.TOKEN3
 ];
 
-const statuses = ["dnd", "idle", "dnd"];
+const statuses = ["dnd", "invisible", "dnd"];
 
 const bots = botTokens.map((token, index) => {
   const bot = new Eris(token);
@@ -25,3 +25,9 @@ const bots = botTokens.map((token, index) => {
   bot.connect();
   return bot;
 });
+
+
+// online
+// idle
+// dnd
+// invisible
