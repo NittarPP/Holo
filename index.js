@@ -15,10 +15,13 @@ if (botTokens.some(token => !token)) {
 }
 
 const status = ["dnd", "dnd", "dnd"];
-const activityTypes = [2, 0, 2]; // 2: Listening, 0: Playing, 3: Streaming
+const activityTypes = [2, 0, 2];
 const activityTexts = ["Youtube Music", "Liminal land", "Coding"];
 
-// Load and save question-answer database
+const bots = [];
+const delay = ms => new Promise(res => setTimeout(res, ms));
+
+// กำหนดฐานข้อมูลคำถามและคำตอบ
 let qaDatabase = {};
 
 const loadDatabase = () => {
@@ -34,10 +37,11 @@ const saveDatabase = () => {
   fs.writeFileSync('qaDatabase.json', JSON.stringify(qaDatabase, null, 2));
 };
 
-// Responding to user messages
+// ฟังก์ชันตอบคำถาม
 const getResponse = async (message) => {
   const lowerCaseMessage = message.toLowerCase();
-  // If the question exists in the database, return the stored answer
+
+  // ถ้าคำถามมีในฐานข้อมูล, ตอบคำถามนั้น
   if (qaDatabase[lowerCaseMessage]) {
     return qaDatabase[lowerCaseMessage];
   } else {
@@ -45,70 +49,51 @@ const getResponse = async (message) => {
   }
 };
 
-// Connecting all bots
-const botInstances = [];
-const delay = ms => new Promise(res => setTimeout(res, ms));
+(async () => {
+  loadDatabase(); // โหลดฐานข้อมูลเมื่อเริ่มทำงาน
 
-// Initialize bots
-const initBots = () => {
-  botTokens.forEach((token, index) => {
-    const bot = new Eris(token);
+  for (let i = 0; i < botTokens.length; i++) {
+    const bot = new Eris(botTokens[i]);
 
     bot.on("ready", () => {
-      console.log(`✅ Bot ${index + 1} is ready as ${bot.user.username}`);
-      bot.editStatus(status[index], {
-        name: activityTexts[index],
-        type: activityTypes[index]
+      console.log(`✅ Bot ${i + 1} is ready as ${bot.user.username}`);
+      bot.editStatus(status[i], {
+        name: activityTexts[i],
+        type: activityTypes[i]
       });
 
-      bot.on("messageCreate", async (msg) => {
-        if (msg.author.id !== bot.user.id) {  // Avoid responding to its own messages
-          try {
-            const response = await getResponse(msg.content);
-            // Check if bot has permission to send messages
-            if (msg.channel.permissionsOf(bot.user.id).has("sendMessages")) {
-              bot.createMessage(msg.channel.id, response);
-            } else {
-              console.error(`❌ Bot ${index + 1} does not have permission to send messages in this channel.`);
-            }
+      bot.on("messageCreate", (msg) => {
+        if (msg.author.id !== bot.user.id) || (bot.user.id == 1362109750879453608 ) {  // ตรวจสอบว่าไม่ตอบข้อความของตัวเอง // และ กำหนดแค่บอท 13621097508794536081362109750879453608
+          getResponse(msg.content).then((response) => {
+            bot.createMessage(msg.channel.id, response);
 
+            // ถ้าบอทไม่รู้คำตอบ, จะขอคำตอบจากผู้ใช้
             if (response === "I don't know the answer to that. Can you tell me the answer?") {
               bot.on("messageCreate", (responseMsg) => {
                 if (responseMsg.author.id === msg.author.id) {
-                  // Save user-provided answer to the database
+                  // เก็บคำตอบของผู้ใช้
                   qaDatabase[msg.content.toLowerCase()] = responseMsg.content;
-                  saveDatabase();  // Save the updated database
+                  saveDatabase();  // บันทึกฐานข้อมูล
                   bot.createMessage(msg.channel.id, "Thank you! I'll remember that answer.");
                 }
               });
             }
-          } catch (error) {
-            console.error("❌ Error responding to message:", error);
-          }
+          });
         }
       });
     });
 
     bot.on("error", (err) => {
-      console.error(`❗ Error with Bot ${index + 1}:`, err);
+      console.error(`❗ Error with bot ${i + 1}:`, err);
     });
 
     bot.on("disconnect", (err, code) => {
-      console.warn(`⚠️ Bot ${index + 1} disconnected with code ${code}:`, err);
+      console.warn(`⚠️ Bot ${i + 1} disconnected with code ${code}:`, err);
     });
 
-    botInstances.push(bot);
-  });
-};
+    bot.connect();
+    bots.push(bot);
 
-// Load the database and initialize bots
-(async () => {
-  loadDatabase(); // Load the question-answer database
-  initBots(); // Initialize all bots
-
-  // Connect each bot after a delay (to avoid rate limiting issues)
-  for (const bot of botInstances) {
-    await bot.connect();
-    await delay(1000); // Delay to avoid hitting rate limits for multiple bot connections
+    if (i < botTokens.length - 1) await delay(3000); // รอ 3 วินาทีก่อนเชื่อมต่อบอทถัดไป
   }
 })();
