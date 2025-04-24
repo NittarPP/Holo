@@ -8,26 +8,31 @@ const botTokens = [
   process.env.TOKEN3
 ];
 
+// Status indicators (online, idle, dnd, invisible)
 const statuses = ["dnd", "invisible", "dnd"];
+
+// Activity types: 0=Playing, 1=Streaming, 2=Listening, 3=Watching, 4=Custom, 5=Competing
+const activityTypes = [5, 5, 5]; // should be numbers, not strings
+
+// Activity text
+const activityTexts = ["Competing in A", "Competing in B", "Competing in C"];
 
 const bots = botTokens.map((token, index) => {
   const bot = new Eris(token);
 
   bot.on("error", (err) => {
-    console.error(`Error with bot${index + 1}:`, err);
+    console.error(`Error with bot ${index + 1}:`, err);
   });
 
   bot.on("ready", () => {
     console.log(`Bot ${index + 1} is ready as ${bot.user.username}`);
-    bot.editStatus(statuses[index] || "dnd");
+
+    bot.editStatus(statuses[index], {
+      name: activityTexts[index],
+      type: activityTypes[index]
+    });
   });
 
   bot.connect();
   return bot;
 });
-
-
-// online
-// idle
-// dnd
-// invisible
