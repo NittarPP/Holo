@@ -12,10 +12,10 @@ const botTokens = [
 const statuses = ["dnd", "invisible", "dnd"];
 
 // Activity types: 0=Playing, 1=Streaming, 2=Listening, 3=Watching, 4=Custom, 5=Competing
-const activityTypes = [5, 5, 5]; // should be numbers, not strings
+const activityTypes = [0, 4, 0]; // should be numbers, not strings
 
 // Activity text
-const activityTexts = ["Competing in A", "Competing in B", "Competing in C"];
+const activityTexts = ["Roblox", "Sad", "Roblox"];
 
 const bots = botTokens.map((token, index) => {
   const bot = new Eris(token);
