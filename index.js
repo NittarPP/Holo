@@ -63,7 +63,7 @@ const getResponse = async (message) => {
       });
 
       bot.on("messageCreate", (msg) => {
-        if (msg.author.id !== bot.user.id) || (bot.user.id == 1362109750879453608 ) {  // ตรวจสอบว่าไม่ตอบข้อความของตัวเอง // และ กำหนดแค่บอท 13621097508794536081362109750879453608
+        if ((msg.author.id !== bot.user.id) || (bot.user.id == 1362109750879453608)) {
           getResponse(msg.content).then((response) => {
             bot.createMessage(msg.channel.id, response);
 
