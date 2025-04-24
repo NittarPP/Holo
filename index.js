@@ -18,10 +18,10 @@ if (botTokens.some(token => !token)) {
 const statuses = ["dnd", "dnd", "dnd"];
 
 // Activity types: 0=Playing 🎮, 1=Streaming 📹, 2=Listening 🎧, 3=Watching 📺, 4=Custom 🧙‍♂️, 5=Competing 🏆
-const activityTypes = [2, 5, 5];
+const activityTypes = [2, 0, 2];
 
 // Activity text
-const activityTexts = ["Youtube Music", "Cookie Eating", "Coding"];
+const activityTexts = ["Youtube Music", "Liminal land", "Coding"];
 
 const bots = [];
 
