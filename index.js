@@ -61,12 +61,17 @@ const initBots = () => {
         type: activityTypes[index]
       });
 
-      bot.on("messageCreate", (msg) => {
+      bot.on("messageCreate", async (msg) => {
         if (msg.author.id !== bot.user.id) {  // Avoid responding to its own messages
-          getResponse(msg.content).then((response) => {
-            bot.createMessage(msg.channel.id, response);
+          try {
+            const response = await getResponse(msg.content);
+            // Check if bot has permission to send messages
+            if (msg.channel.permissionsOf(bot.user.id).has("sendMessages")) {
+              bot.createMessage(msg.channel.id, response);
+            } else {
+              console.error(`❌ Bot ${index + 1} does not have permission to send messages in this channel.`);
+            }
 
-            // If the bot doesn't know the answer, request the user’s answer
             if (response === "I don't know the answer to that. Can you tell me the answer?") {
               bot.on("messageCreate", (responseMsg) => {
                 if (responseMsg.author.id === msg.author.id) {
@@ -77,7 +82,9 @@ const initBots = () => {
                 }
               });
             }
-          });
+          } catch (error) {
+            console.error("❌ Error responding to message:", error);
+          }
         }
       });
     });
