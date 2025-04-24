@@ -32,7 +32,6 @@ const delay = ms => new Promise(res => setTimeout(res, ms));
         name: activityTexts[i],
         type: activityTypes[i]
       });
-      });
     });
 
     bot.on("error", (err) => {
