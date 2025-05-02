@@ -14,10 +14,10 @@ if (botTokens.some(token => !token)) {
   process.exit(1);
 }
 // Status indicators (online, idle, dnd, invisible)
-const status = ["dnd", "invisible", "dnd"];
+const status = ["dnd", "idle", "dnd"];
 // Activity types: 0=Playing 🎮, 1=Streaming 📹, 2=Listening 🎧, 3=Watching 📺, 4=Custom 🧙‍♂️, 5=Competing 🏆
-const activityTypes = [2, 0, 2];
-const activityTexts = ["Youtube Music", "", "Coding"];
+const activityTypes = [4, 0, 4];
+const activityTexts = ["c", "", ""];
 
 const bots = [];
 const delay = ms => new Promise(res => setTimeout(res, ms));
