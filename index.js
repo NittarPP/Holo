@@ -1,51 +1,64 @@
-require('dotenv').config();
+require("dotenv").config();
 const Eris = require("eris");
-const fs = require("fs");
-
-const botTokens = [
-  process.env.TOKEN1,
-  process.env.TOKEN2,
-  process.env.TOKEN3
-];
-
-// Validate tokens
-if (botTokens.some(token => !token)) {
-  console.error("❌ One or more bot tokens are missing. Please check your .env file.");
-  process.exit(1);
-}
-// Status indicators (online, idle, dnd, invisible)
-const status = ["dnd", "idle", "dnd"];
-// Activity types: 0=Playing 🎮, 1=Streaming 📹, 2=Listening 🎧, 3=Watching 📺, 4=Custom 🧙‍♂️, 5=Competing 🏆
-const activityTypes = [4, 0, 4];
-const activityTexts = ["c", "", ""];
 
 const bots = [];
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
-(async () => {
+const botConfigs = [
+  {
+    token: process.env.TOKEN1,
+    status: process.env.STATUS1 || "online",
+    activity: process.env.ACTIVITY1 || null
+  },
+  {
+    token: process.env.TOKEN2,
+    status: process.env.STATUS2 || "online",
+    activity: process.env.ACTIVITY2 || null
+  },
+  {
+    token: process.env.TOKEN3,
+    status: process.env.STATUS3 || "online",
+    activity: process.env.ACTIVITY3 || null
+  }
+];
 
-  for (let i = 0; i < botTokens.length; i++) {
-    const bot = new Eris(botTokens[i]);
+(async () => {
+  for (let i = 0; i < botConfigs.length; i++) {
+    const cfg = botConfigs[i];
+    if (!cfg.token) {
+      console.warn(`⚠️ Skipping Bot ${i + 1}: missing token`);
+      continue;
+    }
+
+    const bot = new Eris(cfg.token);
 
     bot.on("ready", () => {
-      console.log(`✅ Bot ${i + 1} is ready as ${bot.user.username}`);
-      bot.editStatus(status[i], {
-        name: activityTexts[i],
-        type: activityTypes[i]
-      });
+      console.log(`✅ Bot ${i + 1} ready as ${bot.user.username}`);
+
+      if (cfg.activity && cfg.activity.trim() !== "") {
+        // Set status with "Playing" activity
+        bot.editStatus(cfg.status, { name: cfg.activity, type: 0 });
+      } else {
+        // Just set status (no activity)
+        bot.editStatus(cfg.status);
+      }
     });
 
-    bot.on("error", (err) => {
-      console.error(`❗ Error with bot ${i + 1}:`, err);
-    });
-
-    bot.on("disconnect", (err, code) => {
-      console.warn(`⚠️ Bot ${i + 1} disconnected with code ${code}:`, err);
-    });
+    bot.on("error", err => console.error(`❗ Bot ${i + 1} error:`, err));
+    bot.on("disconnect", (err, code) =>
+      console.warn(`⚠️ Bot ${i + 1} disconnected (code ${code}):`, err)
+    );
 
     bot.connect();
     bots.push(bot);
 
-    if (i < botTokens.length - 1) await delay(1000); // รอ 1 วินาทีก่อนเชื่อมต่อบอทถัดไป
+    if (i < botConfigs.length - 1) await delay(2000);
   }
 })();
+
+// Graceful shutdown
+process.on("SIGINT", () => {
+  console.log("🛑 Shutting down bots...");
+  bots.forEach(bot => bot.disconnect({ reconnect: false }));
+  process.exit(0);
+});
