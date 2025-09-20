@@ -40,10 +40,21 @@ const botConfigs = [
       console.log(`✅ Bot ${i + 1} ready as ${bot.user.username}`);
 
       if (cfg.activity && cfg.activity.trim() !== "") {
-        bot.editStatus(cfg.status, { 
-          name: cfg.activity, 
-          type: cfg.activityType ?? 0 // default Playing
-        });
+        if (cfg.activityType === 4) {
+          // Custom Status
+          bot.editStatus(cfg.status, [
+            {
+              type: 4,
+              state: cfg.activity // must use state instead of name
+            }
+          ]);
+        } else {
+          // Normal activities (Playing, Listening, Watching, etc.)
+          bot.editStatus(cfg.status, {
+            name: cfg.activity,
+            type: cfg.activityType ?? 0
+          });
+        }
       } else {
         bot.editStatus(cfg.status);
       }
