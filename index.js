@@ -8,17 +8,20 @@ const botConfigs = [
   {
     token: process.env.TOKEN1,
     status: process.env.STATUS1 || "online",
-    activity: process.env.ACTIVITY1 || null
+    activity: process.env.ACTIVITY1 || null,
+    activityType: parseInt(process.env.ACTIVITY_TYPE1) || null
   },
   {
     token: process.env.TOKEN2,
     status: process.env.STATUS2 || "online",
-    activity: process.env.ACTIVITY2 || null
+    activity: process.env.ACTIVITY2 || null,
+    activityType: parseInt(process.env.ACTIVITY_TYPE2) || null
   },
   {
     token: process.env.TOKEN3,
     status: process.env.STATUS3 || "online",
-    activity: process.env.ACTIVITY3 || null
+    activity: process.env.ACTIVITY3 || null,
+    activityType: parseInt(process.env.ACTIVITY_TYPE3) || null
   }
 ];
 
@@ -36,10 +39,11 @@ const botConfigs = [
       console.log(`✅ Bot ${i + 1} ready as ${bot.user.username}`);
 
       if (cfg.activity && cfg.activity.trim() !== "") {
-        // Set status with "Playing" activity
-        bot.editStatus(cfg.status, { name: cfg.activity, type: 0 });
+        bot.editStatus(cfg.status, { 
+          name: cfg.activity, 
+          type: cfg.activityType ?? 0 // default Playing
+        });
       } else {
-        // Just set status (no activity)
         bot.editStatus(cfg.status);
       }
     });
