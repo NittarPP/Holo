@@ -15,7 +15,7 @@ const activityMap = {
   competing: 5, compete: 5, comp: 5
 };
 
-// Helper to parse activity type
+// Parse activity type helper
 function parseActivityType(val) {
   if (!val) return null;
   const n = Number(val);
@@ -23,14 +23,14 @@ function parseActivityType(val) {
   return activityMap[String(val).trim().toLowerCase()] ?? null;
 }
 
-// Load bot configs from .env
+// Load bot configs dynamically
 const botConfigs = [];
 for (let i = 1; i <= 3; i++) {
   const rawActivities = process.env[`ACTIVITY${i}`] || "";
   const rawTypes = process.env[`ACTIVITY_TYPE${i}`] || "";
-  const rawUrls = process.env[`ACTIVITY_URL${i}`] || ""; // direct CDN URLs
+  const rawUrls = process.env[`ACTIVITY_URL${i}`] || "";
 
-  const activities = rawActivities.split(";").map(a => a.trim()).filter(a => a);
+  const activities = rawActivities.split(";").map(a => a.trim()).filter(Boolean);
   const types = rawTypes.split(";").map(t => parseActivityType(t));
   const urls = rawUrls.split(";").map(u => u.trim());
 
@@ -51,7 +51,7 @@ if (!validConfigs.length) {
   process.exit(1);
 }
 
-// Connect bots and set activities
+// Connect bots
 (async () => {
   for (const cfg of validConfigs) {
     const idx = cfg.index;
@@ -72,8 +72,11 @@ if (!validConfigs.length) {
             const type = cfg.activityTypes[i] ?? 0;
             const url = cfg.activityUrls[i];
 
-            const activity = type === 4 ? { type: 4, state: act } : { name: act, type };
-            if (url) activity.url = url; // Add URL for image/GIF
+            // Include URL for all activity types
+            const activity = type === 4
+              ? { type: 4, state: act, url }
+              : { name: act, type, url };
+
             return activity;
           });
 
