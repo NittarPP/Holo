@@ -15,7 +15,15 @@ const activityMap = {
   competing: 5, compete: 5, comp: 5
 };
 
-// Parse activity type helper
+// Print activity map on start
+console.clear();
+console.log("🔹 Activity Mappings:");
+for (const [key, val] of Object.entries(activityMap)) {
+  console.log(`  ${key}: ${val}`);
+}
+console.log("\n");
+
+// Parse activity type
 function parseActivityType(val) {
   if (!val) return null;
   const n = Number(val);
@@ -23,43 +31,41 @@ function parseActivityType(val) {
   return activityMap[String(val).trim().toLowerCase()] ?? null;
 }
 
-// Load bot configs dynamically
+// Build configs from ENV (adjust the upper bound if you have more tokens)
 const botConfigs = [];
 for (let i = 1; i <= 3; i++) {
+  // Allow multiple activities separated by semicolon
   const rawActivities = process.env[`ACTIVITY${i}`] || "";
   const rawTypes = process.env[`ACTIVITY_TYPE${i}`] || "";
-  const rawUrls = process.env[`ACTIVITY_URL${i}`] || "";
 
-  const activities = rawActivities.split(";").map(a => a.trim()).filter(Boolean);
+  const activities = rawActivities.split(";").map(a => a.trim()).filter(a => a);
   const types = rawTypes.split(";").map(t => parseActivityType(t));
-  const urls = rawUrls.split(";").map(u => u.trim());
 
   botConfigs.push({
     index: i,
     token: process.env[`TOKEN${i}`],
     status: process.env[`STATUS${i}`] || "online",
     activities,
-    activityTypes: types,
-    activityUrls: urls
+    activityTypes: types
   });
 }
 
-// Filter valid configs
+// Filter out configs without tokens
 const validConfigs = botConfigs.filter(cfg => cfg.token);
-if (!validConfigs.length) {
+
+if (validConfigs.length === 0) {
   console.error("❌ No valid tokens found in .env (TOKEN1..TOKEN3). Exiting.");
   process.exit(1);
 }
 
-// Connect bots
 (async () => {
   for (const cfg of validConfigs) {
     const idx = cfg.index;
     const bot = new Eris(cfg.token);
 
     const readyTimeout = setTimeout(() => {
-      console.warn(`⚠️ Bot ${idx} did not become ready in 30s — disconnecting.`);
-      try { bot.disconnect({ reconnect: false }); } catch {}
+      console.warn(`⚠️ Bot ${idx} did not become ready within 30s — disconnecting.`);
+      try { bot.disconnect({ reconnect: false }); } catch (e) {}
     }, 30_000);
 
     bot.on("ready", () => {
@@ -67,33 +73,25 @@ if (!validConfigs.length) {
       console.log(`✅ Bot ${idx} ready as ${bot.user.username}`);
 
       try {
-        if (cfg.activities.length) {
+        if (cfg.activities.length > 0) {
           const activityObjects = cfg.activities.map((act, i) => {
             const type = cfg.activityTypes[i] ?? 0;
-            const url = cfg.activityUrls[i];
-
-            // Include URL for all activity types
-            const activity = type === 4
-              ? { type: 4, state: act, url }
-              : { name: act, type, url };
-
-            return activity;
+            return type === 4 ? { type: 4, state: act } : { name: act, type };
           });
-
           bot.editStatus(cfg.status, activityObjects);
         } else {
           bot.editStatus(cfg.status);
         }
       } catch (err) {
-        console.error(`❗ Failed to set activity for Bot ${idx}:`, err);
+        console.error(`❗ Failed to set status for Bot ${idx}:`, err);
       }
     });
 
-    bot.on("error", err => {
-      console.error(`❗ Bot ${idx} error:`, err.message || err);
-      if (err.message && /401|unauthorized|invalid token/i.test(err.message)) {
-        console.error(`❌ Bot ${idx} has invalid token — disconnecting.`);
-        try { bot.disconnect({ reconnect: false }); } catch {}
+    bot.on("error", (err) => {
+      console.error(`❗ Bot ${idx} error:`, err && err.message ? err.message : err);
+      if (err && err.message && /401|unauthorized|invalid token/i.test(err.message)) {
+        console.error(`❌ Bot ${idx} appears to have an invalid token — disconnecting.`);
+        try { bot.disconnect({ reconnect: false }); } catch (e) {}
       }
     });
 
@@ -112,12 +110,14 @@ if (!validConfigs.length) {
   }
 })();
 
-// Graceful shutdown
+// graceful shutdown
 process.on("SIGINT", () => {
   console.log("🛑 Shutting down bots...");
-  bots.forEach(b => { try { b.disconnect({ reconnect: false }); } catch {} });
+  bots.forEach(b => {
+    try { b.disconnect({ reconnect: false }); } catch (e) {}
+  });
   process.exit(0);
 });
 
-process.on("unhandledRejection", r => console.warn("Unhandled Rejection:", r));
-process.on("uncaughtException", err => console.error("Uncaught Exception:", err));
+process.on("unhandledRejection", (r) => console.warn("Unhandled Rejection:", r));
+process.on("uncaughtException", (err) => console.error("Uncaught Exception:", err));
