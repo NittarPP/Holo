@@ -1,6 +1,6 @@
 require("dotenv").config();
 const Eris = require("eris");
-const keepAlive = require("./keep_alive");
+const keepAlive = require("./keep_alive.js");
 
 const bots = [];
 const delay = ms => new Promise(res => setTimeout(res, ms));
